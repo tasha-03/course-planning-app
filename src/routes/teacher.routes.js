@@ -1,8 +1,9 @@
 const express = require("express");
 const router = express.Router();
 const teachersController = require("../controllers/teacher.controller");
+const auth = require("../middlewares/auth");
 
-router.post("/", teachersController.create);
+router.post("/", auth("ADMIN"), teachersController.create);
 router.get("/", teachersController.findAll);
 router.get("/:id", teachersController.findOne);
 router.put("/:id", teachersController.update);
