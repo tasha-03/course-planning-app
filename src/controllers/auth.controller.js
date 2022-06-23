@@ -8,9 +8,7 @@ exports.login = async (req, res) => {
   const { username, password } = req.body;
   try {
     const user = await User.findOne({ where: { username: username } });
-    console.log(user);
     if (!verify(password, user.password)) {
-      console.log("1");
       res.send({ success: false, message: "Неверные данные" });
       return;
     } else {
@@ -25,7 +23,6 @@ exports.login = async (req, res) => {
       });
     }
   } catch (err) {
-    console.log("2");
     res.send({ success: false, message: "Неверные данные" });
     return;
   }
