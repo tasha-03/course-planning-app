@@ -1,12 +1,12 @@
-const { courses } = require("../models");
 const db = require("../models");
 const { hash } = require("../utils/argon");
+const { courses } = require("../utils/searchConditions");
 const User = db.users;
 const Op = db.Sequelize.Op;
 
 exports.create = async (req, res) => {
-  const user = req.body;
-  if (!user.username || !user.name || !user.email || !user.password) {
+  const { username, email, name, password, role, CathedraId } = req.body;
+  if (!username || !name || !email || !password || !CathedraId) {
     res.send({
       success: false,
       message: "Ошибка при попытке создать пользователя",
@@ -14,33 +14,106 @@ exports.create = async (req, res) => {
     return;
   }
   try {
-    const password = await hash(user.password);
-    if (!password) {
+    const hpassword = await hash(password);
+    if (!hpassword) {
       res.send({
         success: false,
         message: "Ошибка при попытке создать пользователя",
       });
       return;
     }
-    user.password = password;
-    const data = await User.create(user);
-    res.send({ success: true, data });
+    const npassword = hpassword;
+    const data = await User.create({
+      username,
+      email,
+      name,
+      password: npassword,
+      role,
+      CathedraId,
+    });
+    res.send({
+      success: true,
+      data: {
+        id: data.id,
+        username: data.username,
+        email: data.email,
+        name: data.name,
+        role: data.role,
+        CathedraId: data.CathedraId,
+      },
+    });
   } catch (err) {
     res.send({
       success: false,
       message: "Ошибка при попытке создать пользователя",
     });
-    return;
   }
 };
 
 exports.findAll = (req, res) => {
-  name = req.body.name;
-  var condition = name ? { name: { [Op.iLike]: `%${name}%` } } : null;
+  const { limit = 20, page = 1 } = req.query;
+  const name = req.body.name;
+  const cathedraName = req.body.cathedraName;
+  let nameCondition = name ? { name: { [Op.iLike]: `%${name}%` } } : null;
+  let cathedraNameCondition = cathedraName
+    ? { name: { [Op.iLike]: `%${cathedraName}%` } }
+    : null;
   User.findAll({
-    where: condition,
+    where: nameCondition,
     attributes: ["id", "name"],
-    include: courses,
+    include: [
+      {
+        model: db.courses,
+        attributes: [
+          "id",
+          "name",
+          "startDate",
+          "endDate",
+          "hours",
+          "capacity",
+          "groupNumber",
+          "annotation",
+        ],
+        include: [
+          {
+            model: db.sdos,
+            attributes: ["id", "name"],
+          },
+          {
+            model: db.years,
+            as: "Utp",
+            attributes: ["id", "year"],
+          },
+          {
+            model: db.years,
+            as: "Rp",
+            attributes: ["id", "year"],
+          },
+          {
+            model: db.forms,
+            attributes: ["id", "name"],
+          },
+          {
+            model: db.listenersCategories,
+            attributes: ["id", "name"],
+            through: {
+              attributes: [],
+            },
+          },
+        ],
+        through: {
+          attributes: [],
+        },
+      },
+      {
+        model: db.cathedras,
+        attributes: ["id", "name"],
+        where: cathedraNameCondition,
+      },
+    ],
+    order: [["name", "ASC"]],
+    limit: limit,
+    offset: (page - 1) * limit,
   })
     .then((data) => res.send({ success: true, data: data }))
     .catch((err) =>
@@ -58,7 +131,49 @@ exports.findOne = (req, res) => {
   User.findOne({
     where: { id: id },
     attributes: ["id", "name"],
-    include: courses,
+    include: [
+      {
+        model: db.courses,
+        attributes: [
+          "id",
+          "name",
+          "startDate",
+          "endDate",
+          "hours",
+          "capacity",
+          "groupNumber",
+          "annotation",
+        ],
+        include: [
+          {
+            model: db.sdos,
+            attributes: ["id", "name"],
+          },
+          {
+            model: db.years,
+            as: "Utp",
+            attributes: ["id", "year"],
+          },
+          {
+            model: db.years,
+            as: "Rp",
+            attributes: ["id", "year"],
+          },
+          {
+            model: db.forms,
+            attributes: ["id", "name"],
+          },
+          {
+            model: db.listenersCategories,
+            attributes: ["id", "name"],
+          },
+        ],
+      },
+      {
+        model: db.cathedras,
+        attributes: ["id", "name"],
+      },
+    ],
   })
     .then((data) => res.send({ success: true, data: data }))
     .catch((err) =>
@@ -73,8 +188,8 @@ exports.findOne = (req, res) => {
 
 exports.update = async (req, res) => {
   const id = req.params.id;
-  const { username, email, name } = req.body;
-  User.update({ username, email, name }, { where: { id: id } })
+  const { username, email, name, CathedraId } = req.body;
+  User.update({ username, email, name, CathedraId }, { where: { id: id } })
     .then((num) => {
       if (num == 1) {
         res.send({ success: true, message: "Запись обновлена успешно." });

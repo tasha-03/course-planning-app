@@ -1,61 +1,63 @@
-const { users } = require("../models");
 const db = require("../models");
+const { courses } = require("../utils/searchConditions");
 const Course = db.courses;
 const Op = db.Sequelize.Op;
 
-exports.create = (req, res) => {
-  const course = req.body;
+exports.create = async (req, res) => {
+  const course = req.body || {};
   if (
     !course.number ||
     !course.name ||
-    !course.plannedDates ||
+    !course.startDate ||
+    !course.endDate ||
     !course.hours ||
     !course.capacity ||
     !course.groupNumber ||
-    !course.listenersCategory ||
-    !course.annotation
+    !course.annotation ||
+    !course.SdoId ||
+    !course.UtpId ||
+    !course.RpId ||
+    !course.FormId ||
+    (course.Users && course.Users.length === 0) ||
+    (course.ListenersCategories && course.ListenersCategories.length === 0)
   ) {
     res.send({
       success: false,
-      message: "Ошибка при попытке создать курс",
+      message: "Ошибка при попытке создать курс 1",
     });
     return;
   }
-  Course.create(course)
-    .then((data) => res.send({ success: true, data }))
-    .catch((err) => {
-      res.send({
-        success: false,
-        message: "Ошибка при попытке создать курс",
-      });
-      console.log(err);
+  try {
+    const data = await Course.create({
+      number: course.number,
+      name: course.name,
+      startDate: course.startDate,
+      endDate: course.endDate,
+      hours: course.hours,
+      capacity: course.capacity,
+      groupNumber: course.groupNumber,
+      annotation: course.annotation,
+      SdoId: course.SdoId,
+      UtpId: course.UtpId,
+      RpId: course.RpId,
+      FormId: course.FormId,
     });
+    data.addUsers(course.Users);
+    data.addListenersCategories(course.ListenersCategories);
+    res.send({ success: true, data });
+  } catch (err) {
+    res.status(500).send({
+      success: false,
+      message: "Ошибка при попытке создать курс",
+    });
+    console.log(err);
+  }
 };
 
 exports.findAll = (req, res) => {
-  const search = req.body.name;
-  var condition = search
-    ? {
-        [Op.or]: [
-          { number: { [Op.iLike]: `%${search}%` } },
-          { name: { [Op.iLike]: `%${search}%` } },
-          { sdo: { [Op.iLike]: `%${search}%` } },
-          { utp: { [Op.iLike]: `%${search}%` } },
-          { rp: { [Op.iLike]: `%${search}%` } },
-          { plannedDates: { [Op.iLike]: `%${search}%` } },
-          { hours: { [Op.iLike]: `%${search}%` } },
-          { capacity: { [Op.iLike]: `%${search}%` } },
-          { groupNumber: { [Op.iLike]: `%${search}%` } },
-          { form: { [Op.iLike]: `%${search}%` } },
-          { listenersCategory: { [Op.iLike]: `%${search}%` } },
-          { annotation: { [Op.iLike]: `%${search}%` } },
-        ],
-      }
-    : null;
-  Course.findAll({
-    where: condition,
-    include: users,
-  })
+  const search = req.body;
+  var condition = courses(search);
+  Course.findAll(condition)
     .then((data) => res.send({ success: true, data: data }))
     .catch((err) =>
       res.status(500).send({
@@ -65,4 +67,8 @@ exports.findAll = (req, res) => {
           'Произошла ошибка при попытке получить записи из таблицы "Курсы".',
       })
     );
+};
+
+exports.findOne = async (req, res) => {
+  return;
 };

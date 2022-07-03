@@ -4,8 +4,13 @@ const { wrap } = require("async-middleware");
 
 const matchRole = (role, targetRole) => {
   return (
-    (role === "USER" && targetRole === "USER") ||
-    (role === "ADMIN" && (targetRole === "USER" || targetRole === "ADMIN"))
+    (role === "VIEWER" && targetRole === "VIEWER") ||
+    (role === "EDITOR" &&
+      (targetRole === "VIEWER" || targetRole === "EDITOR")) ||
+    (role === "ADMIN" &&
+      (targetRole === "VIEWER" ||
+        targetRole === "EDITOR" ||
+        targetRole === "ADMIN"))
   );
 };
 
