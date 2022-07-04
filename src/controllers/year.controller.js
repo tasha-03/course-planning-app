@@ -1,4 +1,5 @@
 const db = require("../models");
+const Year = db.years;
 
 exports.create = async (req, res) => {
   const year = req.body.year;
@@ -9,7 +10,7 @@ exports.create = async (req, res) => {
     return;
   }
   try {
-    const data = await db.years.create({ year });
+    const data = await Year.create({ year });
     res.status(200).send({
       success: true,
       data: {
@@ -18,9 +19,23 @@ exports.create = async (req, res) => {
       },
     });
   } catch (err) {
-    console.log(err)
+    console.log(err);
     res
       .status(500)
       .send({ success: false, message: "Ошибка при попытке создать год" });
+  }
+};
+
+exports.findAll = async (req, res) => {
+  try {
+    const data = await Year.findAll({ attributes: ["id", "year"] });
+    res.status(200).send({ success: true, data });
+  } catch (e) {
+    res.status(500).send({
+      success: false,
+      message:
+        err.message ||
+        'Произошла ошибка при попытке получить записи из таблицы "Года".',
+    });
   }
 };

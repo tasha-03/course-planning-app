@@ -19,11 +19,13 @@ exports.courses = (courses = {}) => {
     FormId,
     listenersCategories,
     annotation,
+    CathedraId,
   } = courses;
   return {
     model: db.courses,
     attributes: [
       "id",
+      "number",
       "name",
       "startDate",
       "endDate",
@@ -66,6 +68,7 @@ exports.courses = (courses = {}) => {
             }
           : null,
         FormId ? { FormId: { [Op.eq]: FormId } } : null,
+        CathedraId ? { CathedraId: { [Op.eq]: CathedraId } } : null,
         annotation ? { annotation: { [Op.iLike]: `%${annotation}%` } } : null,
       ],
     },
@@ -97,6 +100,17 @@ exports.courses = (courses = {}) => {
         through: {
           attributes: [],
         },
+      },
+      {
+        model: db.users,
+        attributes: ["id", "name"],
+        through: {
+          attributes: [],
+        },
+      },
+      {
+        model: db.cathedras,
+        attributes: ["id", "name"],
       },
     ],
   };

@@ -11,10 +11,10 @@ const yearsRouter = require("./year.routes");
 const formsRouter = require("./form.routes");
 const listenersCategoriesRouter = require("./listenersCategory.routes");
 
-router.use("/users", auth("VIEWER"), usersRouter);
+router.use("/users", usersRouter);
 router.use("/auth", authRouter);
-router.use("/courses", auth("VIEWER"), coursesRouter);
-router.use("/cathedras", auth("VIEWER"), cathedrasRouter);
+router.use("/courses", coursesRouter);
+router.use("/cathedras", cathedrasRouter);
 router.use("/sdos", sdosRouter);
 router.use("/years", yearsRouter);
 router.use("/forms", formsRouter);

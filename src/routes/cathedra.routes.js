@@ -4,7 +4,7 @@ const cathedraController = require("../controllers/cathedra.controller");
 const auth = require("../middlewares/auth");
 
 router.post("/", cathedraController.create);
-// router.post("/all", courseController.findAll);
+router.post("/all", cathedraController.findAll);
 // router.get("/:id", courseController.findOne);
 // router.put("/:id", auth("ADMIN"), courseController.update);
 // router.delete("/:id", auth("ADMIN"), courseController.delete);

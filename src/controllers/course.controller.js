@@ -19,7 +19,8 @@ exports.create = async (req, res) => {
     !course.RpId ||
     !course.FormId ||
     (course.Users && course.Users.length === 0) ||
-    (course.ListenersCategories && course.ListenersCategories.length === 0)
+    (course.ListenersCategories && course.ListenersCategories.length === 0) ||
+    (course.Cathedras && course.Cathedras.length === 0)
   ) {
     res.send({
       success: false,
@@ -41,6 +42,7 @@ exports.create = async (req, res) => {
       UtpId: course.UtpId,
       RpId: course.RpId,
       FormId: course.FormId,
+      CathedraId: course.CathedraId,
     });
     data.addUsers(course.Users);
     data.addListenersCategories(course.ListenersCategories);
@@ -71,4 +73,31 @@ exports.findAll = (req, res) => {
 
 exports.findOne = async (req, res) => {
   return;
+};
+
+exports.delete = async (req, res) => {
+  const id = req.params.id;
+
+  Course.destroy({ where: { id: id } })
+    .then((num) => {
+      if (num == 1) {
+        res.send({
+          success: true,
+          message: "Запись удалена успешно.",
+        });
+      } else {
+        res.send({
+          success: false,
+          message: `Невозможно удалить запись с id=${id}. Возможно, запись не найдена.`,
+        });
+      }
+    })
+    .catch((err) => {
+      res.status(500).send({
+        success: false,
+        message:
+          err.message ||
+          `Произошла ошибка при попытке удалить запись с id=${id} в таблице "Курсы".`,
+      });
+    });
 };

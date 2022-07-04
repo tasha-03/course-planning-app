@@ -5,8 +5,14 @@ const User = db.users;
 const Op = db.Sequelize.Op;
 
 exports.create = async (req, res) => {
-  const { username, email, name, password, role, CathedraId } = req.body;
-  if (!username || !name || !email || !password || !CathedraId) {
+  const { username, email, name, password, role, Cathedras } = req.body;
+  if (
+    !username ||
+    !name ||
+    !email ||
+    !password ||
+    (Cathedras && Cathedras.length === 0)
+  ) {
     res.send({
       success: false,
       message: "Ошибка при попытке создать пользователя",
@@ -29,8 +35,8 @@ exports.create = async (req, res) => {
       name,
       password: npassword,
       role,
-      CathedraId,
     });
+    data.addCathedras([Cathedras]);
     res.send({
       success: true,
       data: {
@@ -39,13 +45,12 @@ exports.create = async (req, res) => {
         email: data.email,
         name: data.name,
         role: data.role,
-        CathedraId: data.CathedraId,
       },
     });
   } catch (err) {
     res.send({
       success: false,
-      message: "Ошибка при попытке создать пользователя",
+      message: err.message || "Ошибка при попытке создать пользователя",
     });
   }
 };
@@ -108,6 +113,9 @@ exports.findAll = (req, res) => {
       {
         model: db.cathedras,
         attributes: ["id", "name"],
+        through: {
+          attributes: [],
+        },
         where: cathedraNameCondition,
       },
     ],
@@ -172,6 +180,9 @@ exports.findOne = (req, res) => {
       {
         model: db.cathedras,
         attributes: ["id", "name"],
+        through: {
+          attributes: [],
+        },
       },
     ],
   })

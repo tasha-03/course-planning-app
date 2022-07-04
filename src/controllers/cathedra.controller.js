@@ -23,14 +23,16 @@ exports.findAll = async (req, res) => {
   const name = req.body.name;
   let condition = name ? { name: { [Op.iLike]: `%${name}%` } } : null;
   try {
-    const data = await db.cathedras.findAll({ where: condition });
+    const data = await db.cathedras.findAll({
+      where: condition,
+      attributes: ["id", "name"],
+    });
+    res.send({ success: true, data });
   } catch (err) {
-    res
-      .status(500)
-      .send({
-        success: false,
-        message:
-          'Произошла ошибка при попытке получить записи из таблицы "Кафедры".',
-      });
+    res.status(500).send({
+      success: false,
+      message:
+        'Произошла ошибка при попытке получить записи из таблицы "Кафедры".',
+    });
   }
 };

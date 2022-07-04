@@ -20,8 +20,15 @@ db.listenersCategories = require("./listenersCategory.model")(
   Sequelize
 );
 
-db.cathedras.hasMany(db.users);
-db.users.belongsTo(db.cathedras);
+db.cathedras.hasMany(db.courses);
+db.courses.belongsTo(db.cathedras);
+
+db.cathedras.belongsToMany(db.users, {
+  through: "CathedrasTeachers",
+});
+db.users.belongsToMany(db.cathedras, {
+  through: "CathedrasTeachers",
+});
 
 db.courses.belongsToMany(db.users, {
   through: "CoursesTeachers",
